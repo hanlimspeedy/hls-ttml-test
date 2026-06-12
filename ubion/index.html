@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ubion HLS 다국어 자막 샘플 테스트</title>
+<style>
+  :root{--ink:#1b2430;--soft:#5d6a77;--accent:#21425f;--line:#e2e6ea;--ok:#2f6b52;--bad:#9e3b34;--chip:#eef1f4}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink);background:#f4f6f8;line-height:1.5}
+  .wrap{max-width:760px;margin:0 auto;padding:16px 16px 48px}
+  h1{font-size:20px;font-weight:750;letter-spacing:-.01em;margin:.2rem 0 .1rem}
+  .sub{color:var(--soft);font-size:13px;margin-bottom:14px}
+  .videowrap{background:#000;border-radius:10px;overflow:hidden;position:relative}
+  video{width:100%;display:block;background:#000;max-height:56vh}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 14px;margin-top:14px}
+  .panel h2{font-size:13px;letter-spacing:.04em;color:var(--accent);font-weight:700;margin:0 0 10px;text-transform:uppercase}
+  .btns{display:flex;flex-wrap:wrap;gap:8px}
+  button.sel{appearance:none;border:1.5px solid var(--line);background:#fff;color:var(--ink);
+    font-size:16px;font-weight:600;padding:12px 16px;border-radius:9px;cursor:pointer;min-width:84px;transition:.12s}
+  button.sel:active{transform:scale(.97)}
+  button.sel.active{border-color:var(--accent);background:var(--accent);color:#fff}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px}
+  .kv .k{color:var(--soft)}
+  .kv .v{font-weight:600;word-break:break-word}
+  .badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--chip);color:var(--accent)}
+  .badge.ok{background:#e6f0ea;color:var(--ok)} .badge.bad{background:#f6e9e8;color:var(--bad)}
+  ol.steps{margin:.2rem 0 0;padding-left:1.2rem;font-size:14px;color:#2a3742}
+  ol.steps li{margin:.3rem 0}
+  .log{font-family:"SFMono-Regular",Menlo,Consolas,monospace;font-size:12px;color:#41505c;
+    background:#f7f9fa;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px;
+    white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto}
+  .now{font-size:15px;margin-top:10px}
+  .now b{color:var(--accent)}
+  .hint{font-size:12.5px;color:var(--soft);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Ubion 다국어 자막 샘플 테스트</h1>
+  <div class="sub">(한국어 · English · 中文 · Tiếng Việt 4개 언어) · 단일 master playlist</div>
+
+  <div class="videowrap">
+    <video id="video" controls playsinline webkit-playsinline preload="auto"></video>
+  </div>
+
+  <div class="panel">
+    <h2>① 자막 선택 (탭하여 전환)</h2>
+    <div class="btns" id="btns"><span class="hint">트랙을 불러오는 중…</span></div>
+    <div class="now">현재 표시: <b id="nowsel">—</b></div>
+    <div class="hint">iPhone은 전체화면 재생 시 우측 하단 <b>말풍선(자막) 아이콘</b> 메뉴에서도 선택할 수 있습니다.</div>
+  </div>
+
+  <div class="panel">
+    <h2>② 진단 정보 (스크린샷용)</h2>
+    <div class="kv">
+      <div class="k">재생 경로</div><div class="v" id="mode">확인 중…</div>
+      <div class="k">감지된 자막 트랙</div><div class="v" id="tklist">—</div>
+      <div class="k">영상/소리</div><div class="v" id="av">—</div>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="panel">
+    <h2>③ 확인할 것</h2>
+    <ol class="steps">
+      <li>영상 <b>▶︎ 재생</b> → 화면과 <b>소리</b>가 정상인지</li>
+      <li>각 언어 버튼을 누르면 해당 언어 자막으로 <b>바뀌는지</b> (자막은 0:01~0:10 구간에 표시)</li>
+      <li><b>자막 끄기</b> 누르면 자막이 사라지는지</li>
+      <li>(iPhone) 전체화면에서 native 자막 메뉴에도 네 언어가 보이는지</li>
+    </ol>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5/dist/hls.min.js" onerror="window.__hlsFail=true"></script>
+<script>
+  var SRC = "sample/master.m3u8";
+  var video=document.getElementById('video');
+  var btns=document.getElementById('btns'), nowsel=document.getElementById('nowsel');
+  var modeEl=document.getElementById('mode'), tklistEl=document.getElementById('tklist'), avEl=document.getElementById('av');
+  var logEl=document.getElementById('log');
+  var usingHls=false, hls=null, lastCount=-1;
+
+  function log(m){ var t=new Date().toLocaleTimeString(); logEl.textContent += '['+t+'] '+m+'\n'; logEl.scrollTop=logEl.scrollHeight; }
+  function setMode(m){ modeEl.innerHTML=m; }
+
+  // 공통: 버튼 렌더링 (tracks: [{label}], idx는 배열 순서)
+  function renderButtons(tracks){
+    if(tracks.length===lastCount && btns.dataset.built==='1') return;
+    lastCount=tracks.length; btns.dataset.built='1';
+    btns.innerHTML='';
+    var off=document.createElement('button'); off.className='sel'; off.textContent='자막 끄기';
+    off.onclick=function(){ select(-1, off, '끄기'); }; btns.appendChild(off);
+    tracks.forEach(function(t,i){
+      var b=document.createElement('button'); b.className='sel'; b.textContent=t.label;
+      b.onclick=function(){ select(i, b, t.label); }; btns.appendChild(b);
+    });
+    tklistEl.textContent = tracks.length ? (tracks.length+'개 — '+tracks.map(function(t){return t.label;}).join(' / ')) : '0개 (감지 안 됨)';
+    log('자막 트랙 '+tracks.length+'개 감지: '+tracks.map(function(t){return t.label;}).join(', '));
+  }
+  function highlight(activeBtn){
+    [].forEach.call(btns.querySelectorAll('button'), function(b){ b.classList.remove('active'); });
+    if(activeBtn) activeBtn.classList.add('active');
+  }
+  function select(idx, btn, label){
+    if(usingHls){
+      if(idx===-1){ hls.subtitleDisplay=false; hls.subtitleTrack=-1; }
+      else { hls.subtitleDisplay=true; hls.subtitleTrack=idx; }
+    } else {
+      var subs=nativeSubs();
+      subs.forEach(function(tt,i){ tt.mode = (i===idx)?'showing':'disabled'; });
+    }
+    highlight(btn); nowsel.textContent = (idx===-1?'자막 없음':label);
+    log('선택 → '+(idx===-1?'끄기':label));
+  }
+
+  function nativeSubs(){
+    var out=[]; if(!video.textTracks) return out;
+    for(var i=0;i<video.textTracks.length;i++){
+      var tt=video.textTracks[i];
+      if(tt.kind==='subtitles'||tt.kind==='captions') out.push(tt);
+    }
+    return out;
+  }
+  function buildNative(){
+    var subs=nativeSubs();
+    var tracks=subs.map(function(tt,i){ return {label: (tt.label || tt.language || ('자막'+(i+1)))}; });
+    renderButtons(tracks);
+  }
+  function buildHls(){
+    var st=hls.subtitleTracks||[];
+    var tracks=st.map(function(t,i){ return {label:(t.name||t.lang||('자막'+(i+1)))}; });
+    renderButtons(tracks);
+  }
+
+  function reportAV(){
+    var w=video.videoWidth, h=video.videoHeight;
+    avEl.innerHTML = (w&&h)? ('<span class="badge ok">영상 '+w+'×'+h+'</span> &nbsp;<span class="badge">재생 가능</span>')
+                           : '<span class="badge">메타데이터 대기</span>';
+  }
+  video.addEventListener('loadedmetadata', function(){ reportAV(); log('loadedmetadata (영상 '+video.videoWidth+'×'+video.videoHeight+')'); setTimeout(buildActive,300); });
+  video.addEventListener('playing', function(){ log('재생 시작'); reportAV(); buildActive(); });
+  video.addEventListener('error', function(){ var e=video.error; log('video error: '+(e?e.code:'?')); });
+
+  function buildActive(){ usingHls? buildHls() : buildNative(); }
+
+  function start(){
+    var canNative = video.canPlayType('application/vnd.apple.mpegurl');
+    log('canPlayType(HLS)="'+canNative+'" / Hls.isSupported='+(window.Hls?Hls.isSupported():'(미로드)'));
+    if(window.Hls && Hls.isSupported()){
+      usingHls=true; setMode('hls.js <span class="badge">'+Hls.version+'</span> <span class="hint">(Android/데스크톱 경로)</span>');
+      hls=new Hls();
+      hls.on(Hls.Events.MANIFEST_PARSED, function(){ log('MANIFEST_PARSED'); buildHls(); });
+      hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, function(){ buildHls(); });
+      hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, function(e,d){ log('자막 트랙 데이터 로드됨 (id '+d.id+')'); });
+      hls.on(Hls.Events.ERROR, function(e,d){ log('hls error: '+d.type+' / '+d.details + (d.fatal?' [fatal]':'')); });
+      hls.loadSource(SRC); hls.attachMedia(video);
+    } else if(canNative){
+      usingHls=false; setMode('iOS/Safari <b>native HLS</b> <span class="badge">AVPlayer</span>');
+      video.src=SRC;
+      if(video.textTracks){
+        video.textTracks.addEventListener('addtrack', function(){ log('textTrack 추가됨'); buildNative(); });
+        video.textTracks.addEventListener('change', buildNative);
+      }
+      setTimeout(buildNative, 1200); setTimeout(buildNative, 3000);
+    } else {
+      setMode('<span class="badge bad">HLS 미지원 브라우저</span>');
+      log('이 브라우저는 HLS를 재생할 수 없습니다.');
+    }
+  }
+
+  if(window.__hlsFail) log('주의: hls.js CDN 로드 실패 (iPhone은 native 경로라 무관)');
+  start();
+</script>
+</body>
+</html>
