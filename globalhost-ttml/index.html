@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>가천대 글로벌호스트 TTML 4개 언어 테스트</title>
+<style>
+  :root{
+    --ink:#18242f;--muted:#687585;--paper:#fffdf7;--line:#dfd5c3;
+    --brand:#185b5a;--brand2:#d86f45;--ok:#236a4b;--warn:#a76016;--bad:#973c37;
+    --chip:#eef4ef;--shadow:0 18px 55px rgba(42,32,18,.14)
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;color:var(--ink);background:
+    radial-gradient(circle at 12% 4%, rgba(216,111,69,.18), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(24,91,90,.16), transparent 32%),
+    linear-gradient(145deg,#f8f0df 0%,#f6f7ef 46%,#eaf3f1 100%);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.5;min-height:100vh}
+  .wrap{max-width:860px;margin:0 auto;padding:18px 16px 46px}
+  .hero{padding:18px 2px 14px}
+  .eyebrow{display:inline-flex;gap:7px;align-items:center;padding:5px 10px;border:1px solid rgba(24,91,90,.22);
+    background:rgba(255,255,255,.58);border-radius:999px;color:var(--brand);font-size:12px;font-weight:800}
+  h1{font-size:24px;line-height:1.18;margin:12px 0 7px;letter-spacing:-.03em}
+  .sub{color:#56636f;font-size:14px;word-break:break-word}
+  .card{background:rgba(255,253,247,.9);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .videowrap{background:#050505;position:relative}
+  video{width:100%;display:block;background:#000;max-height:58vh}
+  .panel{background:rgba(255,253,247,.88);border:1px solid var(--line);border-radius:16px;padding:15px;margin-top:14px}
+  .panel h2{font-size:13px;letter-spacing:.06em;color:var(--brand);font-weight:850;margin:0 0 11px;text-transform:uppercase}
+  .btns{display:flex;flex-wrap:wrap;gap:9px}
+  button.sel{appearance:none;border:1.5px solid #d7c8b5;background:#fffdf9;color:var(--ink);
+    font-size:16px;font-weight:800;padding:12px 15px;border-radius:12px;cursor:pointer;min-width:96px;transition:.12s}
+  button.sel:active{transform:scale(.98)}
+  button.sel.active{border-color:var(--brand);background:var(--brand);color:white}
+  .now{font-size:15px;margin-top:11px}.now b{color:var(--brand)}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .kv{display:grid;grid-template-columns:108px 1fr;gap:7px 12px;font-size:14px}
+  .k{color:var(--muted)}.v{font-weight:750;word-break:break-word}
+  .badge{display:inline-block;font-size:12px;font-weight:850;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--brand)}
+  .badge.ok{background:#e5f2ea;color:var(--ok)}.badge.warn{background:#fff0d8;color:var(--warn)}
+  .badge.bad{background:#f7e3df;color:var(--bad)}
+  .log{font-family:"SFMono-Regular",Menlo,Consolas,monospace;font-size:12px;color:#40505e;
+    background:#fbf8f0;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;
+    white-space:pre-wrap;word-break:break-all;max-height:190px;overflow:auto}
+  ol{margin:.2rem 0 0;padding-left:1.2rem;font-size:14px}li{margin:.36rem 0}
+  code{font-family:"SFMono-Regular",Menlo,Consolas,monospace;font-size:.92em}
+  .small{font-size:12.5px;color:var(--muted)}
+  @media (min-width:760px){.grid{grid-template-columns:1.05fr .95fr}.hero{padding-top:26px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">GlobalHost main_smil · 4-language TTML</div>
+    <h1>가천대 모바일 다국어 자막 최종 테스트</h1>
+    <div class="sub" id="srcText"></div>
+  </section>
+
+  <div class="card">
+    <div class="videowrap">
+      <video id="video" controls playsinline webkit-playsinline preload="metadata"></video>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>1. 자막 선택</h2>
+      <div class="btns" id="btns"><span class="hint">트랙을 불러오는 중...</span></div>
+      <div class="now">현재 표시: <b id="nowsel">-</b></div>
+      <div class="hint">iPhone은 전체화면 재생 시 기본 자막 메뉴에서도 English / 한국어 / Tiếng Việt / 漢語가 보이는지 확인하십시오.</div>
+    </section>
+
+    <section class="panel">
+      <h2>2. 진단 정보</h2>
+      <div class="kv">
+        <div class="k">재생 경로</div><div class="v" id="mode">확인 중...</div>
+        <div class="k">자막 트랙</div><div class="v" id="tklist">-</div>
+        <div class="k">영상/오디오</div><div class="v" id="av">-</div>
+        <div class="k">Manifest 주의</div><div class="v"><span class="badge warn">DEFAULT=YES 4개</span> 실제 앱 선택 동작 확인 필요</div>
+      </div>
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>3. 확인 항목</h2>
+    <ol>
+      <li>영상이 정상 재생되고 소리가 나오는지 확인합니다.</li>
+      <li>자막 트랙이 4개로 감지되는지 확인합니다.</li>
+      <li>English, 한국어, Tiếng Việt, 漢語를 각각 선택했을 때 자막 본문이 해당 언어로 바뀌는지 확인합니다.</li>
+      <li>자막 끄기를 눌렀을 때 자막이 사라지는지 확인합니다.</li>
+      <li>가천대 모바일 앱 또는 iOS Safari의 기본 자막 메뉴에서도 동일하게 선택 가능한지 확인합니다.</li>
+    </ol>
+    <p class="small">사전 HTTP 검증: master playlist, 4개 subtitle playlist, 첫 WebVTT segment, 첫 video TS segment 모두 200 OK 및 CORS 허용 확인.</p>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5/dist/hls.min.js" onerror="window.__hlsFail=true"></script>
+<script>
+  var SRC = "https://gachon.dnstrip.net/smil/smil:47f277bd-af68-4708-84b5-e308c4995fba/mp4/47f277bd-af68-4708-84b5-e308c4995fba_main.smil/playlist.m3u8";
+  var video = document.getElementById("video");
+  var btns = document.getElementById("btns");
+  var nowsel = document.getElementById("nowsel");
+  var modeEl = document.getElementById("mode");
+  var tklistEl = document.getElementById("tklist");
+  var avEl = document.getElementById("av");
+  var logEl = document.getElementById("log");
+  var srcText = document.getElementById("srcText");
+  var usingHls = false;
+  var hls = null;
+  var lastSignature = "";
+
+  srcText.innerHTML = "<code>" + SRC + "</code>";
+
+  function log(message){
+    var t = new Date().toLocaleTimeString();
+    logEl.textContent += "[" + t + "] " + message + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setMode(html){ modeEl.innerHTML = html; }
+
+  function normalizeTrackLabel(track, index){
+    return track.name || track.label || track.lang || track.language || ("자막 " + (index + 1));
+  }
+
+  function renderButtons(tracks){
+    var signature = tracks.map(function(t){ return t.label + ":" + (t.lang || ""); }).join("|");
+    if(signature === lastSignature && btns.dataset.built === "1") return;
+    lastSignature = signature;
+    btns.dataset.built = "1";
+    btns.innerHTML = "";
+
+    var off = document.createElement("button");
+    off.className = "sel";
+    off.textContent = "자막 끄기";
+    off.onclick = function(){ selectTrack(-1, off, "자막 없음"); };
+    btns.appendChild(off);
+
+    tracks.forEach(function(track, index){
+      var b = document.createElement("button");
+      b.className = "sel";
+      b.textContent = track.label;
+      b.onclick = function(){ selectTrack(index, b, track.label); };
+      btns.appendChild(b);
+    });
+
+    tklistEl.textContent = tracks.length
+      ? tracks.length + "개 - " + tracks.map(function(t){ return t.label + (t.lang ? " (" + t.lang + ")" : ""); }).join(" / ")
+      : "0개";
+    log("자막 트랙 감지: " + (tracks.length ? tracks.map(function(t){ return t.label; }).join(", ") : "없음"));
+  }
+
+  function highlight(active){
+    Array.prototype.forEach.call(btns.querySelectorAll("button"), function(button){
+      button.classList.remove("active");
+    });
+    if(active) active.classList.add("active");
+  }
+
+  function selectTrack(index, button, label){
+    if(usingHls){
+      if(index === -1){
+        hls.subtitleDisplay = false;
+        hls.subtitleTrack = -1;
+      } else {
+        hls.subtitleDisplay = true;
+        hls.subtitleTrack = index;
+      }
+    } else {
+      nativeSubtitleTracks().forEach(function(track, i){
+        track.mode = i === index ? "showing" : "disabled";
+      });
+    }
+    highlight(button);
+    nowsel.textContent = label;
+    log("선택: " + label);
+  }
+
+  function nativeSubtitleTracks(){
+    var out = [];
+    if(!video.textTracks) return out;
+    for(var i = 0; i < video.textTracks.length; i++){
+      var track = video.textTracks[i];
+      if(track.kind === "subtitles" || track.kind === "captions") out.push(track);
+    }
+    return out;
+  }
+
+  function buildNativeTracks(){
+    var tracks = nativeSubtitleTracks().map(function(track, index){
+      return { label: normalizeTrackLabel(track, index), lang: track.language || "" };
+    });
+    renderButtons(tracks);
+  }
+
+  function buildHlsTracks(){
+    var tracks = (hls.subtitleTracks || []).map(function(track, index){
+      return { label: normalizeTrackLabel(track, index), lang: track.lang || "" };
+    });
+    renderButtons(tracks);
+  }
+
+  function refreshTracks(){
+    if(usingHls) buildHlsTracks();
+    else buildNativeTracks();
+  }
+
+  function reportAV(){
+    if(video.videoWidth && video.videoHeight){
+      avEl.innerHTML = '<span class="badge ok">영상 ' + video.videoWidth + "x" + video.videoHeight + '</span> <span class="badge ok">재생 가능</span>';
+    } else {
+      avEl.innerHTML = '<span class="badge">메타데이터 대기</span>';
+    }
+  }
+
+  video.addEventListener("loadedmetadata", function(){
+    reportAV();
+    log("loadedmetadata: " + video.videoWidth + "x" + video.videoHeight);
+    setTimeout(refreshTracks, 300);
+  });
+  video.addEventListener("playing", function(){
+    reportAV();
+    refreshTracks();
+    log("재생 시작");
+  });
+  video.addEventListener("error", function(){
+    log("video error: " + (video.error ? video.error.code : "?"));
+  });
+
+  function start(){
+    var canNative = video.canPlayType("application/vnd.apple.mpegurl");
+    log('canPlayType(HLS)="' + canNative + '" / Hls.isSupported=' + (window.Hls ? Hls.isSupported() : "(미로드)"));
+
+    if(window.Hls && Hls.isSupported()){
+      usingHls = true;
+      setMode('hls.js <span class="badge">' + Hls.version + '</span>');
+      hls = new Hls({
+        enableWebVTT: true,
+        renderTextTracksNatively: true
+      });
+      hls.on(Hls.Events.MANIFEST_PARSED, function(){ log("MANIFEST_PARSED"); buildHlsTracks(); });
+      hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, function(){ buildHlsTracks(); });
+      hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, function(e, data){ log("자막 playlist 로드: id " + data.id); });
+      hls.on(Hls.Events.ERROR, function(e, data){
+        log("hls error: " + data.type + " / " + data.details + (data.fatal ? " [fatal]" : ""));
+      });
+      hls.loadSource(SRC);
+      hls.attachMedia(video);
+    } else if(canNative){
+      usingHls = false;
+      setMode('iOS/Safari native HLS <span class="badge">AVPlayer</span>');
+      video.src = SRC;
+      if(video.textTracks){
+        video.textTracks.addEventListener("addtrack", function(){ log("textTrack 추가"); buildNativeTracks(); });
+        video.textTracks.addEventListener("change", buildNativeTracks);
+      }
+      setTimeout(buildNativeTracks, 1200);
+      setTimeout(buildNativeTracks, 3000);
+    } else {
+      setMode('<span class="badge bad">HLS 미지원</span>');
+      log("이 브라우저는 HLS 재생을 지원하지 않습니다.");
+    }
+  }
+
+  if(window.__hlsFail) log("주의: hls.js CDN 로드 실패");
+  start();
+</script>
+</body>
+</html>
